@@ -5,7 +5,7 @@
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.v
+PROJECT_SOURCES = draw_game.v draw_numbers.v game_logic.v glyph_rom.v project.v vga_sync_generator.v
 
 ifneq ($(GATES),yes)
 
