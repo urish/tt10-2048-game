@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+`default_nettype none
+
 module game_logic (
     input wire clk,
     input wire rst_n,
@@ -12,60 +14,6 @@ module game_logic (
     input wire btn_left,
     output reg [63:0] grid
 );
-
-  function [15:0] push_and_merge_row(input [15:0] row, input direction);
-    reg [3:0] result_0, result_1, result_2, result_3;
-    reg [3:0] value;
-    integer i, j;
-    begin
-      // Initialize result cells to 0
-      result_0 = 4'b0000;
-      result_1 = 4'b0000;
-      result_2 = 4'b0000;
-      result_3 = 4'b0000;
-
-      j = 0;  // Index to track the current position in the result
-
-      // Process each cell in the row
-      for (i = 0; i < 4; i = i + 1) begin
-        value = row[15-i*4-:4];  // Extract each 4-bit cell starting from the left
-
-        if (value != 4'b0000) begin
-          case (j)
-            0: result_0 = value;
-            1: begin
-              if (value == result_0) begin
-                result_0 = result_0 + 1;  // Merge with the previous value
-                j = j - 1;  // Reduce j as the merge took place
-              end else begin
-                result_1 = value;
-              end
-            end
-            2: begin
-              if (value == result_1) begin
-                result_1 = result_1 + 1;  // Merge with the previous value
-                j = j - 1;  // Reduce j as the merge took place
-              end else begin
-                result_2 = value;
-              end
-            end
-            3: begin
-              if (value == result_2) begin
-                result_2 = result_2 + 1;  // Merge with the previous value
-                j = j - 1;  // Reduce j as the merge took place
-              end else begin
-                result_3 = value;
-              end
-            end
-          endcase
-          j = j + 1;
-        end
-      end
-
-      // Combine result cells into a single 16-bit value
-      push_and_merge_row = direction ? {result_0, result_1, result_2, result_3} : {result_3, result_2, result_1, result_0};
-    end
-  endfunction
 
   function [63:0] transpose_grid(input [63:0] grid_in);
     reg [63:0] transposed_grid;
@@ -96,36 +44,63 @@ module game_logic (
 
   reg [9:0] counter;
   reg [1:0] add_new_tiles;
+  reg [1:0] current_direction;
+
+  reg button_pressed;
+  reg should_transpose;
   wire [63:0] transposed_grid = transpose_grid(grid);
+  reg [1:0] current_row_index;
+  wire [15:0] current_row = grid[current_row_index*16+:16];
+  wire [15:0] current_row_pushed_merged;
+
+  game_row_push_merge push_merge (
+      .row(current_row),
+      .direction(current_direction[0]),
+      .result_row(current_row_pushed_merged)
+  );
 
   always @(posedge clk) begin
     if (~rst_n) begin
       counter <= 3;
       add_new_tiles <= 2;
       grid <= 0;
+      button_pressed <= 0;
+      current_direction <= 0;
+      current_row_index <= 0;
+      should_transpose <= 0;
     end else begin
       counter <= counter + 1;
       if (counter == 32) begin
         counter <= 0;
       end
-      if (btn_left || btn_right) begin
-        grid <= {
-          push_and_merge_row(grid[63:48], btn_right),
-          push_and_merge_row(grid[47:32], btn_right),
-          push_and_merge_row(grid[31:16], btn_right),
-          push_and_merge_row(grid[15:0], btn_right)
-        };
-        add_new_tiles <= 1;
-      end else if (btn_up || btn_down) begin
-        grid <= transpose_grid(
-            {
-              push_and_merge_row(transposed_grid[63:48], btn_down),
-              push_and_merge_row(transposed_grid[47:32], btn_down),
-              push_and_merge_row(transposed_grid[31:16], btn_down),
-              push_and_merge_row(transposed_grid[15:0], btn_down)
-            }
-        );
-        add_new_tiles <= 1;
+      if (btn_left | btn_right | btn_up | btn_down) begin
+        if (btn_left) begin
+          current_direction <= 2'd0;
+        end else if (btn_right) begin
+          current_direction <= 2'd1;
+        end else if (btn_up) begin
+          current_direction <= 2'd2;
+        end else if (btn_down) begin
+          current_direction <= 2'd3;
+        end
+        if (btn_up | btn_down) begin
+          should_transpose <= 1;
+        end
+        current_row_index <= 0;
+        button_pressed <= 1;
+      end else if (should_transpose) begin
+        grid <= transposed_grid;
+        should_transpose <= 0;
+      end else if (button_pressed) begin
+        grid[current_row_index*16+:16] <= current_row_pushed_merged;
+        current_row_index <= current_row_index + 1;
+        if (current_row_index == 2'd3) begin
+          if (current_direction >= 2) begin
+            should_transpose <= 1;
+          end
+          add_new_tiles  <= 1;
+          button_pressed <= 0;
+        end
       end else if (add_new_tiles != 0) begin
         if (grid[{counter[3:0]}*4+:4] == 0) begin
           grid[{counter[3:0]}*4+:4] <= 1;

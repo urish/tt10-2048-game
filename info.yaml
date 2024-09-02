@@ -20,6 +20,7 @@ project:
     - "draw_game.v"
     - "draw_numbers.v"
     - "game_logic.v"
+    - "game_row_push_merge.v"
     - "glyph_rom.v"
     - "project.v"
     - "vga_sync_generator.v"
