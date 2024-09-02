@@ -25,9 +25,9 @@ module tt_um_2048_vga_game (
   // VGA signals
   wire hsync;
   wire vsync;
-  wire [1:0] R;
-  wire [1:0] G;
-  wire [1:0] B;
+  reg [1:0] R;
+  reg [1:0] G;
+  reg [1:0] B;
   wire video_active;
   wire [9:0] pix_x;
   wire [9:0] pix_y;
@@ -40,7 +40,7 @@ module tt_um_2048_vga_game (
   assign uio_oe  = 0;
 
   // Suppress unused signals warning
-  wire _unused_ok = &{ena, ui_in, uio_in};
+  wire _unused_ok = &{ena, ui_in[7:4], uio_in};
 
   reg [9:0] counter;
 
@@ -75,15 +75,22 @@ module tt_um_2048_vga_game (
       .btn_left(btn_left)
   );
 
-
-  // Assign colors based on position
-  assign R = video_active ? rrggbb[5:4] : 2'b00;
-  assign G = video_active ? rrggbb[3:2] : 2'b00;
-  assign B = video_active ? rrggbb[1:0] : 2'b00;
+  always @(posedge clk) begin
+    if (~rst_n) begin
+      R <= 0;
+      G <= 0;
+      B <= 0;
+    end else begin
+      R <= video_active ? rrggbb[5:4] : 2'b00;
+      G <= video_active ? rrggbb[3:2] : 2'b00;
+      B <= video_active ? rrggbb[1:0] : 2'b00;
+    end
+  end
 
   always @(posedge vsync) begin
     if (~rst_n) begin
       counter <= 0;
+      grid <= 0;
     end else begin
       grid <= next_grid;
       counter <= counter + 1;
