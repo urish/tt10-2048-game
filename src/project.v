@@ -39,10 +39,10 @@ module tt_um_2048_vga_game (
   assign uio_out = 0;
   assign uio_oe  = 0;
 
-  // Suppress unused signals warning
-  wire _unused_ok = &{ena, ui_in[7:4], uio_in};
+  wire [31:0] lfsr_out;
 
-  reg [9:0] counter;
+  // Suppress unused signals warning
+  wire _unused_ok = &{ena, ui_in[7:4], lfsr_out[27:0], uio_in};
 
   vga_sync_generator vga_sync_gen (
       .clk(clk),
@@ -54,10 +54,21 @@ module tt_um_2048_vga_game (
       .vpos(pix_y)
   );
 
-  reg  [63:0] grid;
+  reg [63:0] grid;
   wire [63:0] next_grid;
+  wire [63:0] welcome_screen_grid;
+  reg show_welcome_screen;
 
-  wire [ 5:0] rrggbb;
+  reg vsync_prev;
+  wire vsync_rising_edge = vsync && ~vsync_prev;
+
+  galois_lfsr lfsr_inst (
+      .clk  (clk),
+      .rst_n(rst_n),
+      .lfsr (lfsr_out)
+  );
+
+  wire [5:0] rrggbb;
   draw_game draw_game_inst (
       .grid(grid),
       .x(pix_x),
@@ -65,14 +76,22 @@ module tt_um_2048_vga_game (
       .rrggbb(rrggbb)
   );
 
+  welcome_screen welcome_screen_inst (
+      .clk(clk),
+      .rst_n(rst_n),
+      .vsync_rising_edge(vsync_rising_edge),
+      .lfsr_out(lfsr_out[31:28]),
+      .grid(welcome_screen_grid)
+  );
+
   game_logic game_logic_inst (
       .clk(clk),
       .rst_n(rst_n),
       .grid(next_grid),
-      .btn_up(btn_up),
-      .btn_right(btn_right),
-      .btn_down(btn_down),
-      .btn_left(btn_left)
+      .btn_up(~show_welcome_screen && btn_up),
+      .btn_right(~show_welcome_screen && btn_right),
+      .btn_down(~show_welcome_screen && btn_down),
+      .btn_left(~show_welcome_screen && btn_left)
   );
 
   always @(posedge clk) begin
@@ -80,20 +99,24 @@ module tt_um_2048_vga_game (
       R <= 0;
       G <= 0;
       B <= 0;
+      vsync_prev <= 0;
+      show_welcome_screen <= 1'b1;
+      grid <= 0;
     end else begin
       R <= video_active ? rrggbb[5:4] : 2'b00;
       G <= video_active ? rrggbb[3:2] : 2'b00;
       B <= video_active ? rrggbb[1:0] : 2'b00;
-    end
-  end
-
-  always @(posedge vsync) begin
-    if (~rst_n) begin
-      counter <= 0;
-      grid <= 0;
-    end else begin
-      grid <= next_grid;
-      counter <= counter + 1;
+      vsync_prev <= vsync;
+      if (vsync_rising_edge) begin
+        if (show_welcome_screen) begin
+          grid <= welcome_screen_grid;
+          if (btn_up || btn_down || btn_left || btn_right) begin
+            show_welcome_screen <= 0;
+          end
+        end else begin
+          grid <= next_grid;
+        end
+      end
     end
   end
 
