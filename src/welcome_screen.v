@@ -5,6 +5,9 @@
 
 `default_nettype none
 
+// 30 frames == 0.5 seconds. Make sure welcome_counter is wide enough to hold this value:
+`define ANIMATION_DELAY 30 
+
 module welcome_screen (
     input wire clk,
     input wire rst_n,
@@ -17,9 +20,9 @@ module welcome_screen (
 
   always @(posedge clk) begin
     if (~rst_n) begin
-      welcome_counter <= 5'b0;
+      welcome_counter <= `ANIMATION_DELAY;
     end else begin
-      if (welcome_counter == 5'd30) begin  // 30 frames == 0.5 seconds
+      if (welcome_counter == `ANIMATION_DELAY) begin
         if (grid[lfsr_out*4+:4] == 4'd0) begin
           grid <= 0;
           grid[lfsr_out*4+:4] <= 4'd11;  // displays 2048 (2^11)
