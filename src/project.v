@@ -17,10 +17,38 @@ module tt_um_2048_vga_game (
 );
 
   // Game inputs
-  wire btn_up = ui_in[0];
-  wire btn_down = ui_in[1];
-  wire btn_left = ui_in[2];
-  wire btn_right = ui_in[3];
+  wire btn_up;
+  wire btn_down;
+  wire btn_left;
+  wire btn_right;
+
+  button_debounce btn_up_debounce (
+      .clk(clk),
+      .rst_n(rst_n),
+      .button(ui_in[0]),
+      .debounced(btn_up)
+  );
+
+  button_debounce btn_down_debounce (
+      .clk(clk),
+      .rst_n(rst_n),
+      .button(ui_in[1]),
+      .debounced(btn_down)
+  );
+
+  button_debounce btn_left_debounce (
+      .clk(clk),
+      .rst_n(rst_n),
+      .button(ui_in[2]),
+      .debounced(btn_left)
+  );
+
+  button_debounce btn_right_debounce (
+      .clk(clk),
+      .rst_n(rst_n),
+      .button(ui_in[3]),
+      .debounced(btn_right)
+  );
 
   // VGA signals
   wire hsync;
