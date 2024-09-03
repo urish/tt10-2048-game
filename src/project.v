@@ -42,7 +42,7 @@ module tt_um_2048_vga_game (
   wire [31:0] lfsr_out;
 
   // Suppress unused signals warning
-  wire _unused_ok = &{ena, ui_in[7:4], lfsr_out[27:0], uio_in};
+  wire _unused_ok = &{ena, ui_in[7:4], lfsr_out[27:16], uio_in};
 
   vga_sync_generator vga_sync_gen (
       .clk(clk),
@@ -88,6 +88,7 @@ module tt_um_2048_vga_game (
       .clk(clk),
       .rst_n(rst_n),
       .grid(next_grid),
+      .lfsr_value(lfsr_out[15:0]),
       .btn_up(~show_welcome_screen && btn_up),
       .btn_right(~show_welcome_screen && btn_right),
       .btn_down(~show_welcome_screen && btn_down),
