@@ -58,6 +58,7 @@ module game_logic (
   reg prev_any_button_pressed;
   wire button_pressed = ~prev_any_button_pressed & any_button_pressed;
   reg calculate_move;
+  reg valid_move;
   reg should_transpose;
   wire [63:0] transposed_grid = transpose_grid(grid);
   reg [1:0] current_row_index;
@@ -81,6 +82,7 @@ module game_logic (
       should_transpose <= 0;
       game_started <= 0;
       calculate_move <= 0;
+      valid_move <= 0;
     end else begin
       lfsr_shift <= lfsr_shift - 2'd1;
       prev_any_button_pressed <= any_button_pressed;
@@ -103,18 +105,23 @@ module game_logic (
           should_transpose <= 1;
         end
         current_row_index <= 0;
+        valid_move <= 0;
         calculate_move <= 1;
       end else if (should_transpose) begin
         grid <= transposed_grid;
         should_transpose <= 0;
       end else if (calculate_move) begin
+        if (current_row != current_row_pushed_merged) begin
+          valid_move <= 1;
+        end
         grid[current_row_index*16+:16] <= current_row_pushed_merged;
+
         current_row_index <= current_row_index + 1;
         if (current_row_index == 2'd3) begin
           if (current_direction == DIRECTION_UP || current_direction == DIRECTION_DOWN) begin
             should_transpose <= 1;
           end
-          add_new_tiles  <= 1;
+          add_new_tiles  <= valid_move ? 1 : 0;
           calculate_move <= 0;
         end
       end else if (add_new_tiles != 0) begin
