@@ -21,6 +21,7 @@ module tt_um_2048_vga_game (
   wire btn_down;
   wire btn_left;
   wire btn_right;
+  wire debug_en = ui_in[7];
 
   button_debounce btn_up_debounce (
       .clk(clk),
@@ -61,16 +62,12 @@ module tt_um_2048_vga_game (
   wire [9:0] pix_y;
 
   // TinyVGA PMOD
-  assign uo_out  = {hsync, B[0], G[0], R[0], vsync, B[1], G[1], R[1]};
-
-  // Unused outputs assigned to 0.
-  assign uio_out = 0;
-  assign uio_oe  = 0;
+  assign uo_out = {hsync, B[0], G[0], R[0], vsync, B[1], G[1], R[1]};
 
   wire [31:0] lfsr_out;
 
   // Suppress unused signals warning
-  wire _unused_ok = &{ena, ui_in[7:4], lfsr_out[27:16], uio_in};
+  wire _unused_ok = &{ena, ui_in[6:4], lfsr_out[27:16]};
 
   vga_sync_generator vga_sync_gen (
       .clk(clk),
@@ -99,6 +96,7 @@ module tt_um_2048_vga_game (
   wire [5:0] rrggbb;
   draw_game draw_game_inst (
       .grid(grid),
+      .debug_mode(debug_en),
       .x(pix_x),
       .y(pix_y),
       .rrggbb(rrggbb)
@@ -112,16 +110,45 @@ module tt_um_2048_vga_game (
       .grid(welcome_screen_grid)
   );
 
+  wire [3:0] debug_move;
+  wire debug_btn_up = debug_move[0];
+  wire debug_btn_down = debug_move[1];
+  wire debug_btn_left = debug_move[2];
+  wire debug_btn_right = debug_move[3];
+
+  wire debug_grid_valid;
+  wire [3:0] debug_grid_addr;
+  wire [3:0] debug_grid_data;
+
   game_logic game_logic_inst (
       .clk(clk),
       .rst_n(rst_n),
       .grid(next_grid),
       .lfsr_value(lfsr_out[15:0]),
-      .btn_up(~show_welcome_screen && btn_up),
-      .btn_right(~show_welcome_screen && btn_right),
-      .btn_down(~show_welcome_screen && btn_down),
-      .btn_left(~show_welcome_screen && btn_left)
+      .btn_up((~show_welcome_screen && btn_up) | debug_btn_up),
+      .btn_right((~show_welcome_screen && btn_right) | debug_btn_right),
+      .btn_down((~show_welcome_screen && btn_down) | debug_btn_down),
+      .btn_left((~show_welcome_screen && btn_left) | debug_btn_left),
+      .debug_move(|{debug_move}),
+      .debug_grid_valid(debug_grid_valid),
+      .debug_grid_addr(debug_grid_addr),
+      .debug_grid_data(debug_grid_data)
   );
+
+  debug_controller debug_controller_inst (
+      .clk(clk),
+      .rst_n(rst_n),
+      .debug_en(debug_en),
+      .uio_in(uio_in),
+      .uio_out(uio_out),
+      .uio_oe(uio_oe),
+      .grid_in(next_grid),
+      .grid_out_valid(debug_grid_valid),
+      .grid_out_addr(debug_grid_addr),
+      .grid_out_data(debug_grid_data),
+      .force_move(debug_move)
+  );
+
 
   always @(posedge clk) begin
     if (~rst_n) begin

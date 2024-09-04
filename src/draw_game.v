@@ -6,10 +6,11 @@
 `default_nettype none
 
 module draw_game (
-    input  wire [63:0] grid,
-    input  wire [ 9:0] x,
-    input  wire [ 9:0] y,
-    output reg  [ 5:0] rrggbb
+    input wire [63:0] grid,
+    input wire [9:0] x,
+    input wire [9:0] y,
+    input wire debug_mode,
+    output reg [5:0] rrggbb
 );
 
   localparam CELL_SIZE = 64;
@@ -38,8 +39,12 @@ module draw_game (
   wire board_area = x >= 128 && y >= 128 && x < 128 + 256 && y < 128 + 256;
   wire [5:0] outline_color = is_outline ? 6'b111111 : 6'b0;
 
+  wire debug_rect = x >= 64 && x < 128 + 256 + 64 && y >= 16 && y < 32;
+
   always @(*) begin
-    rrggbb = board_area ? {2'b0, {4{pixel}}} | outline_color : 6'b0;
+    rrggbb = board_area ? {2'b0, {4{pixel}}} | outline_color : 
+             debug_mode && debug_rect ? x[8:3] :    
+             6'b0;
   end
 
 endmodule
