@@ -43,6 +43,10 @@ module game_logic (
     end
   endfunction
 
+  localparam DIRECTION_LEFT = 2'd0;
+  localparam DIRECTION_RIGHT = 2'd1;
+  localparam DIRECTION_UP = 2'd2;
+  localparam DIRECTION_DOWN = 2'd3;
 
   reg game_started;
   reg [1:0] add_new_tiles;
@@ -62,7 +66,7 @@ module game_logic (
 
   game_row_push_merge push_merge (
       .row(current_row),
-      .direction(current_direction[0]),
+      .push_right(current_direction == DIRECTION_RIGHT || current_direction == DIRECTION_DOWN),
       .result_row(current_row_pushed_merged)
   );
 
@@ -87,13 +91,13 @@ module game_logic (
         end
       end else if (button_pressed) begin
         if (btn_left) begin
-          current_direction <= 2'd0;
+          current_direction <= DIRECTION_LEFT;
         end else if (btn_right) begin
-          current_direction <= 2'd1;
+          current_direction <= DIRECTION_RIGHT;
         end else if (btn_up) begin
-          current_direction <= 2'd2;
+          current_direction <= DIRECTION_UP;
         end else if (btn_down) begin
-          current_direction <= 2'd3;
+          current_direction <= DIRECTION_DOWN;
         end
         if (btn_up | btn_down) begin
           should_transpose <= 1;
@@ -107,7 +111,7 @@ module game_logic (
         grid[current_row_index*16+:16] <= current_row_pushed_merged;
         current_row_index <= current_row_index + 1;
         if (current_row_index == 2'd3) begin
-          if (current_direction >= 2) begin
+          if (current_direction == DIRECTION_UP || current_direction == DIRECTION_DOWN) begin
             should_transpose <= 1;
           end
           add_new_tiles  <= 1;

@@ -6,9 +6,9 @@
 `default_nettype none
 
 module game_row_push_merge (
-    input  wire [15:0] row,        // 4x4 grid row input
-    input  wire        direction,  // 1 for left, 0 for right
-    output reg  [15:0] result_row  // Processed output row
+    input  wire [15:0] row,         // 4x4 grid row input
+    input  wire        push_right,  // 0 to push left, 1 to push right
+    output reg  [15:0] result_row   // Processed output row
 );
 
   reg [3:0] result_0, result_1, result_2, result_3;
@@ -26,7 +26,7 @@ module game_row_push_merge (
 
     // Process each cell in the row
     for (i = 0; i < 4; i = i + 1) begin
-      value = direction ? row[15-i*4-:4] : row[i*4+:4];  // Extract each 4-bit cell
+      value = push_right ? row[15-i*4-:4] : row[i*4+:4];  // Extract each 4-bit cell
 
       if (value != 4'b0000) begin
         case (j)
@@ -61,7 +61,7 @@ module game_row_push_merge (
     end
 
     // Combine result cells into a single 16-bit value
-    result_row = direction ? {result_0, result_1, result_2, result_3} : {result_3, result_2, result_1, result_0};
+    result_row = push_right ? {result_0, result_1, result_2, result_3} : {result_3, result_2, result_1, result_0};
   end
 
 endmodule
