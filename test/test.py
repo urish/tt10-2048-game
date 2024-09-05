@@ -123,7 +123,7 @@ async def test_move_left(dut):
     await game.reset()
 
     await game.set(
-        [2, 2, 0, 0],
+        [2, 2, 0, 4],
         [4, 4, 4, 4],
         [2, 0, 2, 2],
         [8, 8, 8, 8],
@@ -132,9 +132,32 @@ async def test_move_left(dut):
     await game.move_left()
 
     expected = [
-        [4, 0, 0, 0],
+        [4, 4, 0, 0],
         [8, 8, 0, 0],
         [4, 2, 0, 0],
         [16, 16, 0, 0],
+    ]
+    assert await game.read_grid() == expected
+
+
+@cocotb.test()
+async def test_move_up(dut):
+    game = GameDriver(dut)
+    await game.reset()
+
+    await game.set(
+        [2, 4, 2, 8],
+        [2, 4, 0, 8],
+        [4, 0, 2, 16],
+        [4, 0, 0, 16],
+    )
+
+    await game.move_up()
+
+    expected = [
+        [4, 8, 4, 16],
+        [8, 0, 0, 32],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
     ]
     assert await game.read_grid() == expected
