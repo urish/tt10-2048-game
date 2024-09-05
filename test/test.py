@@ -161,3 +161,188 @@ async def test_move_up(dut):
         [0, 0, 0, 0],
     ]
     assert await game.read_grid() == expected
+
+
+@cocotb.test()
+async def test_move_down(dut):
+    game = GameDriver(dut)
+    await game.reset()
+
+    await game.set(
+        [2, 4, 2, 2],
+        [4, 4, 0, 2],
+        [2, 0, 2, 2],
+        [2, 4, 2, 0],
+    )
+
+    await game.move_down()
+
+    expected = [
+        [0, 0, 0, 0],
+        [2, 0, 0, 0],
+        [4, 4, 2, 2],
+        [4, 8, 4, 4],
+    ]
+    assert await game.read_grid() == expected
+
+
+async def test_move_right(dut):
+    game = GameDriver(dut)
+    await game.reset()
+
+    await game.set(
+        [2, 4, 2, 2],
+        [4, 4, 4, 2],
+        [2, 2, 2, 2],
+        [2, 4, 2, 4],
+    )
+
+    await game.move_right()
+
+    expected = [
+        [0, 2, 4, 4],
+        [0, 4, 8, 4],
+        [0, 0, 4, 4],
+        [0, 2, 4, 4],
+    ]
+    assert await game.read_grid() == expected
+
+
+@cocotb.test()
+async def test_move_right_empty(dut):
+    game = GameDriver(dut)
+    await game.reset()
+
+    await game.set(
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    )
+
+    await game.move_right()
+
+    expected = [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ]
+    assert await game.read_grid() == expected
+
+
+@cocotb.test()
+async def test_merge_offsets(dut):
+    game = GameDriver(dut)
+    await game.reset()
+
+    await game.set(
+        [2, 2, 0, 0],
+        [2, 0, 2, 0],
+        [2, 0, 0, 2],
+        [0, 2, 0, 2],
+    )
+
+    await game.move_left()
+
+    expected = [
+        [4, 0, 0, 0],
+        [4, 0, 0, 0],
+        [4, 0, 0, 0],
+        [4, 0, 0, 0],
+    ]
+    assert await game.read_grid() == expected
+
+    await game.set(
+        [2, 2, 2, 2],
+        [0, 0, 2, 2],
+        [2, 2, 0, 2],
+        [0, 2, 2, 2],
+    )
+
+    await game.move_left()
+
+    expected = [
+        [4, 4, 0, 0],
+        [4, 0, 0, 0],
+        [4, 2, 0, 0],
+        [4, 2, 0, 0],
+    ]
+    assert await game.read_grid() == expected
+
+
+@cocotb.test()
+async def test_multiple_merges(dut):
+    game = GameDriver(dut)
+    await game.reset()
+
+    await game.set(
+        [2, 2, 4, 8],
+        [2, 2, 4, 8],
+        [2, 2, 4, 8],
+        [2, 2, 4, 8],
+    )
+
+    await game.move_left()
+
+    expected = [
+        [4, 4, 8, 0],
+        [4, 4, 8, 0],
+        [4, 4, 8, 0],
+        [4, 4, 8, 0],
+    ]
+    assert await game.read_grid() == expected
+
+    await game.move_left()
+
+    expected = [
+        [8, 8, 0, 0],
+        [8, 8, 0, 0],
+        [8, 8, 0, 0],
+        [8, 8, 0, 0],
+    ]
+    assert await game.read_grid() == expected
+
+    await game.move_up()
+
+    expected = [
+        [16, 16, 0, 0],
+        [16, 16, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ]
+    assert await game.read_grid() == expected
+
+    await game.move_right()
+
+    expected = [
+        [0, 0, 0, 32],
+        [0, 0, 0, 32],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ]
+    assert await game.read_grid() == expected
+
+    await game.move_down()
+
+    expected = [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 64],
+    ]
+    assert await game.read_grid() == expected
+
+    await game.move_right()
+    # Should not change the grid
+    assert await game.read_grid() == expected
+
+    await game.move_up()
+
+    expected = [
+        [0, 0, 0, 64],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ]
+    assert await game.read_grid() == expected
