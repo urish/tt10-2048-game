@@ -19,7 +19,13 @@ result = []
 for source in sources:
     source_path = os.path.join(os.path.dirname(__file__), "../src/" + source)
     with open(source_path, "r") as f:
-        code = f.read().replace(top_module, "tt_um_vga_example")
+        code = (
+            f.read()
+            .replace(top_module, "tt_um_vga_example")
+            # Workaround until the VGA Playground supports inverted sync signals
+            .replace("  parameter H_SYNC_INV = 1;", "  parameter H_SYNC_INV = 0;")
+            .replace("  parameter V_SYNC_INV = 1;", "  parameter V_SYNC_INV = 0;")
+        )
     result.append(f"// == {source} ==\n\n")
     result.append(code + "\n\n")
 

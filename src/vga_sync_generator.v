@@ -31,11 +31,13 @@ module vga_sync_generator (
   parameter H_BACK = 48;  // horizontal left border (back porch)
   parameter H_FRONT = 16;  // horizontal right border (front porch)
   parameter H_SYNC = 96;  // horizontal sync width
+  parameter H_SYNC_INV = 1;  // invert horizontal sync (active low)
   // vertical constants
   parameter V_DISPLAY = 480;  // vertical display height
   parameter V_TOP = 33;  // vertical top border
   parameter V_BOTTOM = 10;  // vertical bottom border
   parameter V_SYNC = 2;  // vertical sync # lines
+  parameter V_SYNC_INV = 1;  // invert vertical sync (active low)
   // derived constants
   parameter H_SYNC_START = H_DISPLAY + H_FRONT;
   parameter H_SYNC_END = H_DISPLAY + H_FRONT + H_SYNC - 1;
@@ -49,14 +51,14 @@ module vga_sync_generator (
 
   // horizontal position counter
   always @(posedge clk) begin
-    hsync <= (hpos >= H_SYNC_START && hpos <= H_SYNC_END);
+    hsync <= (hpos >= H_SYNC_START && hpos <= H_SYNC_END) ? ~H_SYNC_INV : H_SYNC_INV;
     if (hmaxxed) hpos <= 0;
     else hpos <= hpos + 1;
   end
 
   // vertical position counter
   always @(posedge clk) begin
-    vsync <= (vpos >= V_SYNC_START && vpos <= V_SYNC_END);
+    vsync <= (vpos >= V_SYNC_START && vpos <= V_SYNC_END) ? ~V_SYNC_INV : V_SYNC_INV;
     if (hmaxxed)
       if (vmaxxed) vpos <= 0;
       else vpos <= vpos + 1;
