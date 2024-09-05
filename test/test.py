@@ -346,3 +346,50 @@ async def test_multiple_merges(dut):
         [0, 0, 0, 0],
     ]
     assert await game.read_grid() == expected
+
+
+@cocotb.test()
+async def test_no_move_when_blocked(dut):
+    game = GameDriver(dut)
+    await game.reset()
+
+    await game.set(
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+    )
+
+    await game.move_left()
+
+    # The grid should remain unchanged because no merges or shifts can happen
+    expected = [
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+    ]
+    assert await game.read_grid() == expected
+
+
+@cocotb.test()
+async def test_alternating_merges(dut):
+    game = GameDriver(dut)
+    await game.reset()
+
+    await game.set(
+        [2, 2, 4, 4],
+        [2, 4, 4, 8],
+        [0, 2, 2, 2],
+        [8, 8, 16, 16],
+    )
+
+    await game.move_left()
+
+    expected = [
+        [4, 8, 0, 0],
+        [2, 8, 8, 0],
+        [4, 2, 0, 0],
+        [16, 32, 0, 0],
+    ]
+    assert await game.read_grid() == expected

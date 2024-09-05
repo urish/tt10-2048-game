@@ -13,6 +13,7 @@ module game_row_push_merge (
 
   reg [3:0] result_0, result_1, result_2, result_3;
   reg merged_0;
+  reg merged_1;
   reg [3:0] value;
   integer i, j;
 
@@ -23,6 +24,7 @@ module game_row_push_merge (
     result_2 = 4'b0000;
     result_3 = 4'b0000;
     merged_0 = 1'b0;
+    merged_1 = 1'b0;
 
     j = 0;  // Index to track the current position in the result
 
@@ -43,9 +45,10 @@ module game_row_push_merge (
             end
           end
           2: begin
-            if (value == result_1) begin
+            if (value == result_1 && !merged_1) begin
               result_1 = result_1 + 1;  // Merge with the previous value
               j = j - 1;  // Reduce j as the merge took place
+              merged_1 = 1'b1;
             end else begin
               result_2 = value;
             end
