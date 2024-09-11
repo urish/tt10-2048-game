@@ -14,9 +14,16 @@ module draw_game (
 );
 
   localparam CELL_SIZE = 64;
+  localparam BOARD_X_POS = 192;
+  localparam BOARD_Y_POS = 128;
+  localparam BOARD_WIDTH = CELL_SIZE * 4;
+  localparam BOARD_HEIGHT = CELL_SIZE * 4;
+  localparam BOARD_X_RIGHT = BOARD_X_POS + BOARD_WIDTH;
+  localparam BOARD_Y_BOTTOM = BOARD_Y_POS + BOARD_HEIGHT;
 
-  wire [9:0] board_x = x - 128;
-  wire [9:0] board_y = y - 128;
+
+  wire [9:0] board_x = x - BOARD_X_POS;
+  wire [9:0] board_y = y - BOARD_Y_POS;
   wire [1:0] cell_x = board_x[7:6];
   wire [1:0] cell_y = board_y[7:6];
   wire [5:0] cell_offset = {cell_y, cell_x, 2'b00};
@@ -36,10 +43,10 @@ module draw_game (
       .pixel(pixel)
   );
 
-  wire board_area = x >= 128 && y >= 128 && x < 128 + 256 && y < 128 + 256;
+  wire board_area = x >= BOARD_X_POS && y >= BOARD_Y_POS && x < BOARD_X_RIGHT && y < BOARD_Y_BOTTOM;
   wire [5:0] outline_color = is_outline ? 6'b111111 : 6'b0;
 
-  wire debug_rect = x >= 64 && x < 128 + 256 + 64 && y >= 16 && y < 32;
+  wire debug_rect = x >= BOARD_X_POS - 64 && x < BOARD_X_RIGHT + 64 && y >= 16 && y < 32;
 
   always @(*) begin
     rrggbb = board_area ? {2'b0, {4{pixel}}} | outline_color : 
