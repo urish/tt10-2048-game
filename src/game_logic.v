@@ -131,7 +131,7 @@ module game_logic (
           if (current_direction == DIRECTION_UP || current_direction == DIRECTION_DOWN) begin
             should_transpose <= 1;
           end
-          add_new_tiles  <= valid_move && !debug_move_reg ? 1 : 0;
+          add_new_tiles  <= (current_row != current_row_pushed_merged || valid_move) && !debug_move_reg ? 1 : 0;
           calculate_move <= 0;
         end
       end else if (add_new_tiles != 0) begin
