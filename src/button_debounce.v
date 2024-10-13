@@ -16,7 +16,7 @@ module button_debounce (
   reg button_sync_0, button_sync_1;
 
   // Synchronize the button input to the clock domain to avoid metastability
-  always @(posedge clk or negedge rst_n) begin
+  always @(posedge clk) begin
     if (~rst_n) begin
       button_sync_0 <= 1'b0;
       button_sync_1 <= 1'b0;
@@ -27,7 +27,7 @@ module button_debounce (
   end
 
   // Debounce logic
-  always @(posedge clk or negedge rst_n) begin
+  always @(posedge clk) begin
     if (~rst_n) begin
       debounce_counter <= 18'b0;
       debounced <= 1'b0;

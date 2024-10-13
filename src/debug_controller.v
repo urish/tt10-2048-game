@@ -10,8 +10,8 @@ module debug_controller (
     input wire rst_n,
     input wire debug_en,
     input wire [7:0] uio_in,
-    output reg [7:0] uio_out,
-    output reg [7:0] uio_oe,
+    output wire [7:0] uio_out,
+    output wire [7:0] uio_oe,
     input wire [63:0] grid_in,
 
     output reg grid_out_valid,
