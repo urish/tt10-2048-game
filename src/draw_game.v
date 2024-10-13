@@ -7,6 +7,8 @@
 
 module draw_game (
     input wire [63:0] grid,
+    input wire [15:0] new_tiles,
+    input wire [2:0] new_tiles_counter,
     input wire [9:0] x,
     input wire [9:0] y,
     input wire debug_mode,
@@ -28,6 +30,7 @@ module draw_game (
   wire [1:0] cell_y = board_y[7:6];
   wire [5:0] cell_offset = {cell_y, cell_x, 2'b00};
   wire [3:0] current_number = grid[cell_offset+:4];
+  wire is_new_tile = new_tiles_counter > 0 && new_tiles[{cell_y, cell_x}];
 
   // Determine if we're on the outline
   wire is_outline_x = (x % CELL_SIZE == 0 || x % CELL_SIZE == (CELL_SIZE - 1));
@@ -44,12 +47,14 @@ module draw_game (
   );
 
   wire board_area = x >= BOARD_X_POS && y >= BOARD_Y_POS && x < BOARD_X_RIGHT && y < BOARD_Y_BOTTOM;
+  wire [5:0] fade_font_color = 6'b001111 ^ {3'b0, new_tiles_counter};
+  wire [5:0] font_color = is_new_tile ? fade_font_color : 6'b001111;
   wire [5:0] outline_color = is_outline ? 6'b111111 : 6'b0;
 
   wire debug_rect = x >= BOARD_X_POS - 64 && x < BOARD_X_RIGHT + 64 && y >= 16 && y < 32;
 
   always @(*) begin
-    rrggbb = board_area ? {2'b0, {4{pixel}}} | outline_color : 
+    rrggbb = board_area ? pixel ? font_color : outline_color : 
              debug_mode && debug_rect ? x[8:3] :    
              6'b0;
   end

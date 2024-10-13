@@ -20,7 +20,8 @@ module game_logic (
     input wire [3:0] debug_grid_addr,
     input wire [3:0] debug_grid_data,
 
-    output reg [63:0] grid
+    output reg [63:0] grid,
+    output reg [3:0] added_tile_index
 );
 
   function [63:0] transpose_grid(input [63:0] grid_in);
@@ -92,8 +93,10 @@ module game_logic (
       calculate_move <= 0;
       valid_move <= 0;
       debug_move_reg <= 0;
+      added_tile_index <= 0;
     end else begin
       lfsr_shift <= lfsr_shift - 2'd1;
+      added_tile_index <= 0;
       prev_any_button_pressed <= any_button_pressed;
       if (~game_started) begin
         if (button_pressed) begin
@@ -137,6 +140,7 @@ module game_logic (
       end else if (add_new_tiles != 0) begin
         if (grid[new_tile_index*4+:4] == 0) begin
           grid[new_tile_index*4+:4] <= 1;
+          added_tile_index <= new_tile_index;
           add_new_tiles <= add_new_tiles - 1;
         end
       end

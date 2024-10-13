@@ -84,6 +84,10 @@ module tt_um_2048_vga_game (
   wire [63:0] welcome_screen_grid;
   reg show_welcome_screen;
 
+  wire [3:0] last_added_tile_index;
+  reg [15:0] new_tiles;
+  reg [4:0] new_tiles_counter;
+
   reg vsync_prev;
   wire vsync_rising_edge = vsync && ~vsync_prev;
 
@@ -96,6 +100,8 @@ module tt_um_2048_vga_game (
   wire [5:0] rrggbb;
   draw_game draw_game_inst (
       .grid(grid),
+      .new_tiles(new_tiles),
+      .new_tiles_counter(new_tiles_counter[3:1]),
       .debug_mode(debug_en),
       .x(pix_x),
       .y(pix_y),
@@ -124,6 +130,7 @@ module tt_um_2048_vga_game (
       .clk(clk),
       .rst_n(rst_n),
       .grid(next_grid),
+      .added_tile_index(last_added_tile_index),
       .lfsr_value(lfsr_out[15:0]),
       .btn_up((~show_welcome_screen && btn_up) | debug_btn_up),
       .btn_right((~show_welcome_screen && btn_right) | debug_btn_right),
@@ -163,6 +170,12 @@ module tt_um_2048_vga_game (
       G <= video_active ? rrggbb[3:2] : 2'b00;
       B <= video_active ? rrggbb[1:0] : 2'b00;
       vsync_prev <= vsync;
+
+      if (last_added_tile_index != 0) begin
+        new_tiles[last_added_tile_index] <= 1;
+        new_tiles_counter <= 25;
+      end
+
       if (vsync_rising_edge) begin
         if (show_welcome_screen) begin
           grid <= welcome_screen_grid;
@@ -171,6 +184,12 @@ module tt_um_2048_vga_game (
           end
         end else begin
           grid <= next_grid;
+        end
+
+        if (new_tiles_counter != 0) begin
+          new_tiles_counter <= new_tiles_counter - 1;
+        end else begin
+          new_tiles <= 0;
         end
       end
     end
