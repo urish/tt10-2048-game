@@ -11,6 +11,7 @@ module draw_game (
     input wire [2:0] new_tiles_counter,
     input wire [9:0] x,
     input wire [9:0] y,
+    input wire retro_colors,
     input wire debug_mode,
     output reg [5:0] rrggbb
 );
@@ -23,6 +24,9 @@ module draw_game (
   localparam BOARD_X_RIGHT = BOARD_X_POS + BOARD_WIDTH;
   localparam BOARD_Y_BOTTOM = BOARD_Y_POS + BOARD_HEIGHT;
 
+  wire [5:0] color_font = retro_colors ? 6'b101110 : 6'b001111;
+  wire [5:0] color_bg = retro_colors ? {3'b000, x[0], 2'b00} : 0;
+  wire [5:0] color_outline = retro_colors ? 6'b001000 : 6'b111111;
 
   wire [9:0] board_x = x - BOARD_X_POS;
   wire [9:0] board_y = y - BOARD_Y_POS;
@@ -48,15 +52,13 @@ module draw_game (
 
   wire board_area = x >= BOARD_X_POS && y >= BOARD_Y_POS && x < BOARD_X_RIGHT && y < BOARD_Y_BOTTOM;
   wire [5:0] fade_font_color = 6'b001111 ^ {3'b0, new_tiles_counter};
-  wire [5:0] font_color = is_new_tile ? fade_font_color : 6'b001111;
-  wire [5:0] outline_color = is_outline ? 6'b111111 : 6'b0;
+  wire [5:0] draw_text = is_new_tile ? fade_font_color : color_font;
+  wire [5:0] draw_board = is_outline ? color_outline : color_bg;
 
   wire debug_rect = x >= BOARD_X_POS - 64 && x < BOARD_X_RIGHT + 64 && y >= 16 && y < 32;
 
   always @(*) begin
-    rrggbb = board_area ? pixel ? font_color : outline_color : 
-             debug_mode && debug_rect ? x[8:3] :    
-             6'b0;
+    rrggbb = board_area ? pixel ? draw_text : draw_board : debug_mode && debug_rect ? x[8:3] : 6'b0;
   end
 
 endmodule

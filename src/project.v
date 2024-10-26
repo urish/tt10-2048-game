@@ -21,6 +21,7 @@ module tt_um_2048_vga_game (
   wire btn_down;
   wire btn_left;
   wire btn_right;
+  wire retro_colors = ui_in[6];
   wire debug_en = ui_in[7];
 
   button_debounce btn_up_debounce (
@@ -102,6 +103,7 @@ module tt_um_2048_vga_game (
       .grid(grid),
       .new_tiles(new_tiles),
       .new_tiles_counter(new_tiles_counter[3:1]),
+      .retro_colors(retro_colors),
       .debug_mode(debug_en),
       .x(pix_x),
       .y(pix_y),
