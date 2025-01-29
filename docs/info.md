@@ -28,9 +28,9 @@ Use the `ui_in` pins to move the tiles on the board:
 
 Or use a SNES compatible controller along with the Gamepad Pmod. The game will automatically detect the presence of the Pmod and switch to controller input mode.
 
-After resetting the game, you will see a jumping "2048" animation on the screen. Press any of the `ui_in[3:0]` pins (or the controller buttons) to start the game. The game will start with two tiles with the number 2 on the board. Use the `ui_in` pins (or the controller buttons) to move the tiles in the desired direction. The game will end when the board is full and no more moves can be made.
+After resetting the game, you will see a jumping "2048" animation on the screen. Press any of the `ui_in[3:0]` pins (or the gamepad buttons) to start the game. The game will start with two tiles with the number 2 on the board. Use the `ui_in` pins (or the gamepad buttons) to move the tiles in the desired direction. The game will end when the board is full and no more moves can be made.
 
-The game offers two color themes: modern and retro. You can switch between the two themes by setting `ui_in[6]`.
+The game offers two color themes: modern and retro. You can switch between the two themes using the `select` button on the gamepad or by setting both `ui_in[4]` and `ui_in[5]` to 1.
 
 Setting `ui_in[7]` to 1 will enter unit test mode. In this mode, the game displays a colorful rectangle on the top of the screen, and accepts debug commands on the `uio` pins. Check out the test bench for more information.
 

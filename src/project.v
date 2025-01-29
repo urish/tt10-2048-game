@@ -21,7 +21,7 @@ module tt_um_2048_vga_game (
   wire btn_down_in;
   wire btn_left_in;
   wire btn_right_in;
-  wire retro_colors = ui_in[6];
+  wire retro_colors_in = ui_in[4] & ui_in[5];
   wire debug_en = ui_in[7];
 
   button_debounce btn_up_debounce (
@@ -62,6 +62,7 @@ module tt_um_2048_vga_game (
   wire gamepad_right;
   wire gamepad_up;
   wire gamepad_down;
+  wire gamepad_select;
 
   gamepad_pmod_driver gamepad_pmod_driver_inst (
       .clk(clk),
@@ -79,7 +80,8 @@ module tt_um_2048_vga_game (
       .left(gamepad_left),
       .right(gamepad_right),
       .up(gamepad_up),
-      .down(gamepad_down)
+      .down(gamepad_down),
+      .select(gamepad_select)
   );
   /* verilator lint_on PINMISSING */
 
@@ -88,6 +90,8 @@ module tt_um_2048_vga_game (
   wire btn_down = btn_down_in || gamepad_down;
   wire btn_left = btn_left_in || gamepad_left;
   wire btn_right = btn_right_in || gamepad_right;
+  reg btn_select_prev;
+  wire btn_select = gamepad_select;
 
   // VGA signals
   wire hsync;
@@ -135,12 +139,13 @@ module tt_um_2048_vga_game (
       .lfsr (lfsr_out)
   );
 
+  reg retro_colors;
   wire [5:0] rrggbb;
   draw_game draw_game_inst (
       .grid(grid),
       .new_tiles(new_tiles),
       .new_tiles_counter(new_tiles_counter[3:1]),
-      .retro_colors(retro_colors),
+      .retro_colors(retro_colors_in || retro_colors),
       .debug_mode(debug_en),
       .x(pix_x),
       .y(pix_y),
@@ -204,10 +209,13 @@ module tt_um_2048_vga_game (
       vsync_prev <= 0;
       show_welcome_screen <= 1'b1;
       grid <= 0;
+      retro_colors <= 0;
+      btn_select_prev <= 0;
     end else begin
       R <= video_active ? rrggbb[5:4] : 2'b00;
       G <= video_active ? rrggbb[3:2] : 2'b00;
       B <= video_active ? rrggbb[1:0] : 2'b00;
+      btn_select_prev <= btn_select;
       vsync_prev <= vsync;
 
       if (last_added_tile_index != 0) begin
@@ -230,6 +238,10 @@ module tt_um_2048_vga_game (
         end else begin
           new_tiles <= 0;
         end
+      end
+
+      if (btn_select && ~btn_select_prev) begin
+        retro_colors <= ~retro_colors;
       end
     end
   end
