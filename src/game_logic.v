@@ -13,6 +13,7 @@ module game_logic (
     input wire btn_right,
     input wire btn_down,
     input wire btn_left,
+    input wire btn_start,
     input wire [15:0] lfsr_value,
 
     input wire debug_move,
@@ -99,7 +100,7 @@ module game_logic (
       added_tile_index <= 0;
       prev_any_button_pressed <= any_button_pressed;
       if (~game_started) begin
-        if (button_pressed) begin
+        if (button_pressed || btn_start) begin
           game_started  <= 1;
           add_new_tiles <= 2;
         end

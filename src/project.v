@@ -62,6 +62,7 @@ module tt_um_2048_vga_game (
   wire gamepad_right;
   wire gamepad_up;
   wire gamepad_down;
+  wire gamepad_start;
   wire gamepad_select;
 
   gamepad_pmod_driver gamepad_pmod_driver_inst (
@@ -81,6 +82,7 @@ module tt_um_2048_vga_game (
       .right(gamepad_right),
       .up(gamepad_up),
       .down(gamepad_down),
+      .start(gamepad_start),
       .select(gamepad_select)
   );
   /* verilator lint_on PINMISSING */
@@ -180,6 +182,7 @@ module tt_um_2048_vga_game (
       .btn_right((~show_welcome_screen && btn_right) | debug_btn_right),
       .btn_down((~show_welcome_screen && btn_down) | debug_btn_down),
       .btn_left((~show_welcome_screen && btn_left) | debug_btn_left),
+      .btn_start(~show_welcome_screen && gamepad_start),
       .debug_move(|{debug_move}),
       .debug_grid_valid(debug_grid_valid),
       .debug_grid_addr(debug_grid_addr),
@@ -226,7 +229,7 @@ module tt_um_2048_vga_game (
       if (vsync_rising_edge) begin
         if (show_welcome_screen) begin
           grid <= welcome_screen_grid;
-          if (btn_up || btn_down || btn_left || btn_right) begin
+          if (btn_up || btn_down || btn_left || btn_right || gamepad_start) begin
             show_welcome_screen <= 0;
           end
         end else begin
