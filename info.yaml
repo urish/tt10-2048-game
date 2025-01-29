@@ -24,6 +24,8 @@ project:
     - "galois_lfsr.v"
     - "game_logic.v"
     - "game_row_push_merge.v"
+    - "gamepad_pmod_decoder.v"
+    - "gamepad_pmod_driver.v"
     - "glyph_rom.v"
     - "project.v"
     - "vga_sync_generator.v"
@@ -36,9 +38,9 @@ pinout:
   ui[1]: "btn_down"
   ui[2]: "btn_left"
   ui[3]: "btn_right"
-  ui[4]: ""
-  ui[5]: ""
-  ui[6]: "retro_colors"
+  ui[4]: "gamepad_latch"
+  ui[5]: "gamepad_clk"
+  ui[6]: "gamepad_data"
   ui[7]: "debug_mode"
 
   # Outputs

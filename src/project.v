@@ -16,11 +16,11 @@ module tt_um_2048_vga_game (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-  // Game inputs
-  wire btn_up;
-  wire btn_down;
-  wire btn_left;
-  wire btn_right;
+  // Direct inputs
+  wire btn_up_in;
+  wire btn_down_in;
+  wire btn_left_in;
+  wire btn_right_in;
   wire retro_colors = ui_in[6];
   wire debug_en = ui_in[7];
 
@@ -28,29 +28,66 @@ module tt_um_2048_vga_game (
       .clk(clk),
       .rst_n(rst_n),
       .button(ui_in[0]),
-      .debounced(btn_up)
+      .debounced(btn_up_in)
   );
 
   button_debounce btn_down_debounce (
       .clk(clk),
       .rst_n(rst_n),
       .button(ui_in[1]),
-      .debounced(btn_down)
+      .debounced(btn_down_in)
   );
 
   button_debounce btn_left_debounce (
       .clk(clk),
       .rst_n(rst_n),
       .button(ui_in[2]),
-      .debounced(btn_left)
+      .debounced(btn_left_in)
   );
 
   button_debounce btn_right_debounce (
       .clk(clk),
       .rst_n(rst_n),
       .button(ui_in[3]),
-      .debounced(btn_right)
+      .debounced(btn_right_in)
   );
+
+  // Gamepad Pmod support
+  wire gamepad_pmod_latch = ui_in[4];
+  wire gamepad_pmod_clk = ui_in[5];
+  wire gamepad_pmod_data = ui_in[6];
+  wire [11:0] gamepad_pmod_data_reg;
+  wire gamepad_is_present;
+  wire gamepad_left;
+  wire gamepad_right;
+  wire gamepad_up;
+  wire gamepad_down;
+
+  gamepad_pmod_driver gamepad_pmod_driver_inst (
+      .clk(clk),
+      .rst_n(rst_n),
+      .pmod_latch(gamepad_pmod_latch),
+      .pmod_clk(gamepad_pmod_clk),
+      .pmod_data(gamepad_pmod_data),
+      .data_reg(gamepad_pmod_data_reg)
+  );
+
+  /* verilator lint_off PINMISSING */
+  gamepad_pmod_decoder gamepad_pmod_decoder_inst (
+      .data_reg(gamepad_pmod_data_reg),
+      .is_present(gamepad_is_present),
+      .left(gamepad_left),
+      .right(gamepad_right),
+      .up(gamepad_up),
+      .down(gamepad_down)
+  );
+  /* verilator lint_on PINMISSING */
+
+  // Combined inputs
+  wire btn_up = btn_up_in || gamepad_up;
+  wire btn_down = btn_down_in || gamepad_down;
+  wire btn_left = btn_left_in || gamepad_left;
+  wire btn_right = btn_right_in || gamepad_right;
 
   // VGA signals
   wire hsync;
@@ -62,7 +99,7 @@ module tt_um_2048_vga_game (
   wire [9:0] pix_x;
   wire [9:0] pix_y;
 
-  // TinyVGA PMOD
+  // TinyVGA Pmod
   assign uo_out = {hsync, B[0], G[0], R[0], vsync, B[1], G[1], R[1]};
 
   wire [31:0] lfsr_out;
