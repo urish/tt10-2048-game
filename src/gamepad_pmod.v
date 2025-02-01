@@ -20,6 +20,9 @@
  * The 'dual' takes the same inputs, but each field 
  * (e.g. 'up', 'start', etc. )is an array of two bits,
  * one for each controller.
+ *
+ * Docs, source code and schematics for the pmod will 
+ * be found at https://github.com/psychogenic/gamepad-pmod
  * 
  */
 
