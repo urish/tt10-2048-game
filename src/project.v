@@ -17,6 +17,9 @@ module tt_um_2048_vga_game (
 );
 
   // Direct inputs
+  wire gamepad_pmod_latch = ui_in[4];
+  wire gamepad_pmod_clk = ui_in[5];
+  wire gamepad_pmod_data = ui_in[6];
   wire btn_up_in;
   wire btn_down_in;
   wire btn_left_in;
@@ -53,10 +56,6 @@ module tt_um_2048_vga_game (
   );
 
   // Gamepad Pmod support
-  wire gamepad_pmod_latch = ui_in[4];
-  wire gamepad_pmod_clk = ui_in[5];
-  wire gamepad_pmod_data = ui_in[6];
-  wire [11:0] gamepad_pmod_data_reg;
   wire gamepad_is_present;
   wire gamepad_left;
   wire gamepad_right;
@@ -65,18 +64,19 @@ module tt_um_2048_vga_game (
   wire gamepad_start;
   wire gamepad_select;
 
-  gamepad_pmod_driver gamepad_pmod_driver_inst (
+  /*
+   * The game controller module is used with the 
+   * gamepad pmod, and comes in two variants:
+   * single and dual.  See the gamepad_pmod.v
+   * for details.
+  */
+  /* verilator lint_off PINMISSING */
+  game_controller_pmod_single gamepad_pmod (
       .clk(clk),
       .rst_n(rst_n),
       .pmod_latch(gamepad_pmod_latch),
       .pmod_clk(gamepad_pmod_clk),
       .pmod_data(gamepad_pmod_data),
-      .data_reg(gamepad_pmod_data_reg)
-  );
-
-  /* verilator lint_off PINMISSING */
-  gamepad_pmod_decoder gamepad_pmod_decoder_inst (
-      .data_reg(gamepad_pmod_data_reg),
       .is_present(gamepad_is_present),
       .left(gamepad_left),
       .right(gamepad_right),
@@ -85,7 +85,6 @@ module tt_um_2048_vga_game (
       .start(gamepad_start),
       .select(gamepad_select)
   );
-  /* verilator lint_on PINMISSING */
 
   // Combined inputs
   wire btn_up = btn_up_in || gamepad_up;
