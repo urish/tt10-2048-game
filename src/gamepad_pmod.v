@@ -93,8 +93,8 @@ module gamepad_pmod_driver #(
         data_reg <= shift_reg;
       end
 
-      // Sample data on falling edge of pmod_clk:
-      if (~pmod_clk_sync[1] & pmod_clk_prev) begin
+      // Sample data on rising edge of pmod_clk:
+      if (pmod_clk_sync[1] & ~pmod_clk_prev) begin
         shift_reg <= {shift_reg[BIT_WIDTH-2:0], pmod_data_sync[1]};
       end
     end
