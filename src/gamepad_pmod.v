@@ -79,8 +79,16 @@ module gamepad_pmod_driver #(
 
   always @(posedge clk) begin
     if (~rst_n) begin
-      shift_reg <= 0;
-      data_reg <= 0;
+      /* set data and shift registers to all ones
+       * such that it is detected as "not present" yet.
+       * this accounts for cases where we are:
+       *  - setup for 2 controllers;
+       *  - only a single controller is connected; and
+       *  - the driver in those cases only sends bits for a single
+       *    controller.
+       */
+      data_reg <= {BIT_WIDTH{1'b1}};
+      shift_reg <= {BIT_WIDTH{1'b1}};
       pmod_clk_prev <= 1'b0;
       pmod_latch_prev <= 1'b0;
     end
@@ -93,8 +101,8 @@ module gamepad_pmod_driver #(
         data_reg <= shift_reg;
       end
 
-      // Sample data on falling edge of pmod_clk:
-      if (~pmod_clk_sync[1] & pmod_clk_prev) begin
+      // Sample data on rising edge of pmod_clk:
+      if (pmod_clk_sync[1] & ~pmod_clk_prev) begin
         shift_reg <= {shift_reg[BIT_WIDTH-2:0], pmod_data_sync[1]};
       end
     end
